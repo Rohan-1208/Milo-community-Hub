@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Development-friendly rules: allow authenticated users to read/write
+    // You MUST tighten these for production. See DATABASE_SETUP.md.
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Users: allow the signed-in user to manage their own document
+    match /users/{userId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed() && request.auth.uid == userId;
+    }
+
+    // Communities: readable and writable by any authenticated user (dev)
+    match /communities/{communityId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Comments
+    match /comments/{commentId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Messages
+    match /messages/{messageId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Conversations
+    match /conversations/{conversationId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Join requests
+    match /joinRequests/{requestId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Notifications
+    match /notifications/{notificationId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+
+    // Reports
+    match /reports/{reportId} {
+      allow read: if isAuthed();
+      allow create, update, delete: if isAuthed();
+    }
+  }
+}
