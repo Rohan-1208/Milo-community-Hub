@@ -9,7 +9,7 @@
     "runtimeVersion": {
       "policy": "sdkVersion"
     },
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.rork.miloCommunityHub",
@@ -38,7 +38,16 @@
       [
         "expo-image-picker",
         {}
-      ]
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.21"
+          }
+        }
+      ],
+      "./plugins/remove-enableBundleCompression"
     ],
     "experiments": {
       "typedRoutes": true
