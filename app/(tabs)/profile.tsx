@@ -12,7 +12,7 @@ import { postService } from '@/database/service';
 import type { Post as DbPost } from '@/database/schema';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
-import { storage } from '@/config/firebase';
+import { storage } from '../../config/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 export default function ProfileScreen() {

@@ -16,7 +16,7 @@ import {
   User as FirebaseUser
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from '@/config/firebase';
+import { auth, db, googleProvider } from '../config/firebase';
 import type { User } from '@/types';
 
 WebBrowser.maybeCompleteAuthSession();

@@ -38,7 +38,9 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
       setError(null);
       const msgs = await messageService.getMessages(conversationId, 50);
       // Service returns messages sorted asc by createdAt
-      setMessagesByConversation(prev => ({ ...prev, [conversationId]: msgs }));
+      // Deduplicate by id to avoid React duplicate key warnings
+      const deduped = Array.from(new Map(msgs.map(m => [m.id, m])).values());
+      setMessagesByConversation(prev => ({ ...prev, [conversationId]: deduped }));
     } catch (err) {
       console.error('Error loading messages:', err);
       setError('Failed to load messages');
@@ -60,7 +62,9 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
           const tb = ub && typeof ub.toMillis === 'function' ? ub.toMillis() : (typeof ub === 'string' ? Date.parse(ub) : 0);
           return ta - tb;
         });
-        setMessagesByConversation(prev => ({ ...prev, [conversationId]: sorted }));
+        // Deduplicate by id to avoid React duplicate key warnings
+        const deduped = Array.from(new Map(sorted.map(m => [m.id, m])).values());
+        setMessagesByConversation(prev => ({ ...prev, [conversationId]: deduped }));
       }
     );
     return unsub;
@@ -72,7 +76,8 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
       setError(null);
       // Fetch all conversations by omitting limit
       const convos = await conversationService.getUserConversations(userId);
-      setConversations(convos);
+      const uniqueConvos = Array.from(new Map(convos.map(c => [c.id, c])).values());
+      setConversations(uniqueConvos);
     } catch (err) {
       console.error('Error loading conversations:', err);
       setError('Failed to load conversations');
@@ -83,7 +88,8 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
 
   const subscribeToConversations = useCallback((userId: string) => {
     const unsub = conversationService.subscribeToUserConversations(userId, (convos) => {
-      setConversations(convos);
+      const uniqueConvos = Array.from(new Map(convos.map(c => [c.id, c])).values());
+      setConversations(uniqueConvos);
     });
     return unsub;
   }, []);
@@ -139,10 +145,13 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
       // Online send via Firestore
       const id = await messageService.createMessage(base as any);
       const saved = { ...base, id } as Message;
+      // Optimistically merge while deduplicating
       setMessagesByConversation(prev => {
         const next = { ...prev };
         const list = next[conversationId] ?? [];
-        next[conversationId] = [...list, saved];
+        const map = new Map(list.map(m => [m.id, m]));
+        map.set(saved.id, saved);
+        next[conversationId] = Array.from(map.values());
         return next;
       });
 

@@ -44,7 +44,7 @@ export const [CommunitiesProvider, useCommunities] = createContextHook(() => {
     };
   }, [isAuthenticated]);
 
-  const loadCommunities = async () => {
+  const loadCommunities = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -57,7 +57,7 @@ export const [CommunitiesProvider, useCommunities] = createContextHook(() => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const loadUserCommunities = useCallback(async (userId: string) => {
     try {

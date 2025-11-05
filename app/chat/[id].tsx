@@ -11,7 +11,7 @@ import type { Message } from '@/database/schema';
 import { conversationService, userService } from '@/database/service';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { storage } from '@/config/firebase';
+import { storage } from '../../config/firebase';
 
 function ChatScreenInner() {
   const { id: conversationId } = useLocalSearchParams<{ id: string }>();

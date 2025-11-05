@@ -7,7 +7,7 @@ import type { Post as DbPost } from '@/database/schema';
 import { COLLECTIONS } from '@/database/schema';
 import { useAuth } from '@/hooks/auth-store';
 import { Timestamp, where, orderBy, limit } from 'firebase/firestore';
-import { storage } from '@/config/firebase';
+import { storage } from '../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Alert } from 'react-native';
 

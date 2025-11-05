@@ -17,7 +17,7 @@ import {
   QueryConstraint,
   documentId,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db } from '../config/firebase';
 import { COLLECTIONS } from './schema';
 import type {
   User,

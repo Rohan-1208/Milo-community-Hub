@@ -9,7 +9,7 @@ import { usePosts } from '@/hooks/posts-store';
 import { useCommunities } from '@/hooks/communities-store';
 import { Colors } from '@/constants/colors';
 import GradientButton from '@/components/GradientButton';
-import { storage } from '@/config/firebase';
+import { storage } from '../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 export default function CreatePostModal() {

@@ -7,7 +7,7 @@ import { useCommunities } from '@/hooks/communities-store';
 import GradientButton from '@/components/GradientButton';
 import { Colors } from '@/constants/colors';
 import * as ImagePicker from 'expo-image-picker';
-import { storage } from '@/config/firebase';
+import { storage } from '../../../config/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import type { Community } from '@/database/schema';
 
