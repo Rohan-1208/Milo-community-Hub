@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, Send, WifiOff, Wifi, Image as ImageIcon, Video as VideoIcon } from 'lucide-react-native';
 import { Stack, useLocalSearchParams, router } from 'expo-router';
 import { useAuth } from '@/hooks/auth-store';
-import { useMessages, MessagesProvider } from '@/hooks/messages-store';
+import { useMessages } from '@/hooks/messages-store';
 import { Colors } from '@/constants/colors';
 import type { Message } from '@/database/schema';
 import { conversationService, userService } from '@/database/service';
@@ -22,37 +22,52 @@ function ChatScreenInner() {
   const listRef = useRef<FlatList<Message>>(null);
   const [receiverId, setReceiverId] = useState<string | null>(null);
   const [receiverProfile, setReceiverProfile] = useState<{ name: string; avatar?: string } | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState<boolean>(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const messages = useMemo(() => messagesByConversation[conversationId!] || [], [messagesByConversation, conversationId]);
 
   useEffect(() => {
-    if (conversationId) {
-      loadMessages(conversationId as string);
-      const unsub = subscribeToConversation(conversationId as string);
-      // Resolve receiver from conversation participants
-      (async () => {
-        try {
-          const convo = await conversationService.getConversation(conversationId as string);
-          const other = convo?.participants?.find((p) => p !== user?.id) || null;
-          setReceiverId(other);
-          if (other) {
-            const u = await userService.getUser(other);
-            if (u) setReceiverProfile({ name: (u as any).name || (u as any).username || 'Unknown', avatar: (u as any).avatar });
-          } else {
-            setReceiverProfile(null);
-          }
-        } catch {
-          setReceiverId(null);
+    if (!conversationId) return;
+    let unsubscribe: (() => void) | undefined;
+    (async () => {
+      try {
+        const convo = await conversationService.getConversation(conversationId as string);
+        const participants = convo?.participants || [];
+        const amParticipant = !!user?.id && participants.includes(user.id);
+        setIsAuthorized(amParticipant);
+        setAuthError(amParticipant ? null : 'You are not authorized to view this conversation.');
+
+        // Resolve receiver from conversation participants
+        const other = participants.find((p) => p !== user?.id) || null;
+        setReceiverId(other);
+        if (other) {
+          const u = await userService.getUser(other);
+          if (u) setReceiverProfile({ name: (u as any).name || (u as any).username || 'Unknown', avatar: (u as any).avatar });
+        } else {
           setReceiverProfile(null);
         }
-      })();
-      return () => unsub();
-    }
+
+        // Only subscribe and load if authorized
+        if (amParticipant) {
+          await loadMessages(conversationId as string);
+          unsubscribe = subscribeToConversation(conversationId as string);
+        }
+      } catch (err) {
+        setIsAuthorized(false);
+        setAuthError('You are not authorized to view this conversation.');
+        setReceiverId(null);
+        setReceiverProfile(null);
+      }
+    })();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [conversationId, loadMessages, subscribeToConversation]);
 
   const handleSend = async () => {
-    // Require a resolved receiverId; do not fallback to conversationId
-    if (!user || !conversationId || !text.trim() || !receiverId) return;
+    // Require authorization and a resolved receiverId; do not fallback to conversationId
+    if (!isAuthorized || !user || !conversationId || !text.trim() || !receiverId) return;
     await sendMessage(conversationId as string, user.id, receiverId, text.trim());
     setText('');
     // Scroll to end after sending
@@ -96,7 +111,7 @@ function ChatScreenInner() {
   };
 
   const pickAndUpload = async (mode: 'image' | 'video') => {
-    if (!user?.id || !conversationId || !receiverId) return;
+    if (!isAuthorized || !user?.id || !conversationId || !receiverId) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: mode === 'image' ? ['images'] : ['videos'],
       quality: 0.8,
@@ -158,14 +173,20 @@ function ChatScreenInner() {
         )}
       </LinearGradient>
 
-      <FlatList
-        ref={listRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.messagesList}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
-      />
+      {isAuthorized ? (
+        <FlatList
+          ref={listRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={renderMessage}
+          contentContainerStyle={styles.messagesList}
+          onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+        />
+      ) : (
+        <View style={[styles.messagesList, { alignItems: 'center', justifyContent: 'center', flex: 1 }]}>
+          <Text style={{ color: Colors.textLight }}>{authError || 'Not authorized to view this conversation.'}</Text>
+        </View>
+      )}
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.inputRow}>
@@ -185,6 +206,7 @@ function ChatScreenInner() {
             placeholderTextColor={Colors.textLight}
             value={text}
             onChangeText={setText}
+            editable={isAuthorized}
           />
           <TouchableOpacity style={styles.sendButton} onPress={handleSend} activeOpacity={0.8}>
             <LinearGradient colors={Colors.gradient.primary} style={styles.sendGradient}>
@@ -198,11 +220,7 @@ function ChatScreenInner() {
 }
 
 export default function ChatScreen() {
-  return (
-    <MessagesProvider>
-      <ChatScreenInner />
-    </MessagesProvider>
-  );
+  return <ChatScreenInner />;
 }
 
 const styles = StyleSheet.create({

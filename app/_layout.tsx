@@ -8,6 +8,7 @@ import { LogBox, Platform } from "react-native";
 import { AuthProvider } from "@/hooks/auth-store";
 import { CommunitiesProvider } from "@/hooks/communities-store";
 import { PostsProvider } from "@/hooks/posts-store";
+import { MessagesProvider } from "@/hooks/messages-store";
 
 SplashScreen.preventAutoHideAsync();
 // Silence noisy dev-only warning on web related to Expo's HMR overlay
@@ -40,8 +41,10 @@ export default function RootLayout() {
         <AuthProvider>
           <CommunitiesProvider>
             <PostsProvider>
+              <MessagesProvider>
                 <StatusBar style="auto" />
                 <RootLayoutNav />
+              </MessagesProvider>
             </PostsProvider>
           </CommunitiesProvider>
         </AuthProvider>

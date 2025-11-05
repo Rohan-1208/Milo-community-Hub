@@ -6,7 +6,7 @@ import { MessageCircle, Wifi, WifiOff } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { useAuth } from '@/hooks/auth-store';
 import { Colors } from '@/constants/colors';
-import { useMessages, MessagesProvider } from '@/hooks/messages-store';
+import { useMessages } from '@/hooks/messages-store';
 import { userService } from '@/database/service';
 
 interface ChatPreview {
@@ -204,11 +204,7 @@ function MessagesScreenInner() {
 }
 
 export default function MessagesScreen() {
-  return (
-    <MessagesProvider>
-      <MessagesScreenInner />
-    </MessagesProvider>
-  );
+  return <MessagesScreenInner />;
 }
 
 const styles = StyleSheet.create({
