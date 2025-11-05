@@ -167,9 +167,17 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         setAuthInProgress(true);
         let didRedirect = false;
         if (method === 'redirect') {
-          didRedirect = true;
-          await signInWithRedirect(auth, googleProvider);
-          return; // page will navigate; onAuthStateChanged will handle user after redirect
+          try {
+            didRedirect = true;
+            await signInWithRedirect(auth, googleProvider);
+            return; // page will navigate; onAuthStateChanged will handle user after redirect
+          } catch (redirErr) {
+            console.error('Google redirect sign-in error:', redirErr);
+            // If redirect failed synchronously, clear in-progress to avoid gating navigation
+            didRedirect = false;
+            setAuthInProgress(false);
+            throw redirErr;
+          }
         }
         try {
           const userCred = await signInWithPopup(auth, googleProvider);
