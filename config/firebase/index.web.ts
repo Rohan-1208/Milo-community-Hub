@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { initializeAuth, GoogleAuthProvider, browserLocalPersistence, browserPopupRedirectResolver } from 'firebase/auth';
+import { initializeAuth, GoogleAuthProvider, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
@@ -17,7 +17,6 @@ const app = initializeApp(firebaseConfig);
 // Initialize web auth with explicit persistence and popup redirect resolver
 const auth = initializeAuth(app, {
   persistence: browserLocalPersistence,
-  popupRedirectResolver: browserPopupRedirectResolver,
 });
 const googleProvider = new GoogleAuthProvider();
 // Ensure account selection prompt to reduce silent failures due to cached sessions

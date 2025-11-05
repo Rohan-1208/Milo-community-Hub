@@ -14,7 +14,7 @@ export default function AuthScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login, signup, signInWithGoogle, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { login, signup, signInWithGoogle, isAuthenticated, isLoading: authLoading, authInProgress } = useAuth();
 
   // Navigate to home only after auth state confirms the user is signed in
   useEffect(() => {
@@ -219,7 +219,7 @@ export default function AuthScreen() {
               <TouchableOpacity
                 style={styles.googleButton}
                 onPress={handleGoogleSignIn}
-                disabled={isLoading}
+                disabled={isLoading || authInProgress}
                 activeOpacity={0.8}
               >
                 <View style={styles.googleButtonContent}>

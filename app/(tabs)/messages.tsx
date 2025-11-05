@@ -24,14 +24,14 @@ interface ChatPreview {
 const DEFAULT_AVATAR = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face';
 
 function MessagesScreenInner() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, authInProgress } = useAuth();
   const insets = useSafeAreaInsets();
   const { conversations, isOfflineMode, setIsOfflineMode, loadConversations, subscribeToConversations } = useMessages();
   const [dmProfiles, setDmProfiles] = useState<Record<string, { name: string; avatar?: string }>>({});
 
   useEffect(() => {
-    // Only navigate after auth loading is complete
-    if (!authLoading && !isAuthenticated) {
+    // Only navigate after auth loading is complete and not in-progress
+    if (!authLoading && !isAuthenticated && !authInProgress) {
       // Use a small delay to ensure the layout is mounted
       const timer = setTimeout(() => {
         router.replace('/(auth)/auth');
@@ -43,7 +43,7 @@ function MessagesScreenInner() {
       const unsub = subscribeToConversations(user.id);
       return () => unsub();
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, authInProgress]);
 
   const toggleOfflineMode = () => {
     setIsOfflineMode(!isOfflineMode);

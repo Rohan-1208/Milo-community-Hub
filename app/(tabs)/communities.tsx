@@ -12,22 +12,22 @@ import CommunityCard from '@/components/CommunityCard';
 import type { Community } from '@/types';
 
 export default function CommunitiesScreen() {
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, authInProgress, user } = useAuth();
   const { communities, userCommunities, isLoading, loadUserCommunities, loadCommunities } = useCommunities();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'discover' | 'joined'>('discover');
 
   useEffect(() => {
-    // Only navigate after auth loading is complete
-    if (!authLoading && !isAuthenticated) {
+    // Only navigate after auth loading is complete and not in-progress
+    if (!authLoading && !isAuthenticated && !authInProgress) {
       // Use a small delay to ensure the layout is mounted
       const timer = setTimeout(() => {
         router.replace('/(auth)/auth');
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, authInProgress]);
 
   // Load joined communities once user is authenticated
   useEffect(() => {

@@ -11,20 +11,19 @@ import PostCard from '@/components/PostCard';
 import type { Post } from '@/types';
 
 export default function FeedScreen() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, authInProgress } = useAuth();
   const { posts, isLoading, toggleLike, deletePost, loadPosts } = usePosts();
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    // Only navigate after auth loading is complete
-    if (!authLoading && !isAuthenticated) {
-      // Use a small delay to ensure the layout is mounted
+    // Only navigate after auth loading is complete and not in-progress
+    if (!authLoading && !isAuthenticated && !authInProgress) {
       const timer = setTimeout(() => {
         router.replace('/(auth)/auth');
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, authInProgress]);
 
   // Prime feed once authenticated (in case realtime subscription is delayed)
   useEffect(() => {

@@ -159,7 +159,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('Google sign-in attempt');
       
       if (Platform.OS === 'web') {
-        const method = (process.env.EXPO_PUBLIC_FIREBASE_WEB_AUTH_METHOD || 'popup').toLowerCase();
+        const method = (process.env.EXPO_PUBLIC_FIREBASE_WEB_AUTH_METHOD || 'redirect').toLowerCase();
         console.log('[auth] web sign-in method:', method);
         setAuthInProgress(true);
         let didRedirect = false;

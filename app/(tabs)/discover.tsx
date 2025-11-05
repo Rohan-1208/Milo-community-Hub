@@ -10,7 +10,7 @@ import { userService, conversationService } from '@/database/service';
 import type { User } from '@/types';
 
 export default function DiscoverTabScreen() {
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, authInProgress } = useAuth();
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [allUsers, setAllUsers] = useState<User[]>([]);
@@ -19,11 +19,11 @@ export default function DiscoverTabScreen() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated && !authInProgress) {
       const t = setTimeout(() => router.replace('/(auth)/auth'), 100);
       return () => clearTimeout(t);
     }
-  }, [authLoading, isAuthenticated]);
+  }, [authLoading, isAuthenticated, authInProgress]);
 
   // Load a list of users on mount for discovery
   useEffect(() => {

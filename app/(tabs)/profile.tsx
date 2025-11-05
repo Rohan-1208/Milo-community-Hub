@@ -16,7 +16,7 @@ import { storage } from '../../config/firebase';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 export default function ProfileScreen() {
-  const { user, isAuthenticated, logout, isLoading: authLoading, updateProfile } = useAuth();
+  const { user, isAuthenticated, logout, isLoading: authLoading, authInProgress, updateProfile } = useAuth();
   const { userCommunities } = useCommunities();
   const insets = useSafeAreaInsets();
   const [postsCount, setPostsCount] = useState<number>(0);
@@ -25,15 +25,15 @@ export default function ProfileScreen() {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
-    // Only navigate after auth loading is complete
-    if (!authLoading && !isAuthenticated) {
+    // Only navigate after auth loading is complete and not in-progress
+    if (!authLoading && !isAuthenticated && !authInProgress) {
       // Use a small delay to ensure the layout is mounted
       const timer = setTimeout(() => {
         router.replace('/(auth)/auth');
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, authLoading]);
+  }, [isAuthenticated, authLoading, authInProgress]);
 
   // Load real stats for posts and likes received
   useEffect(() => {
