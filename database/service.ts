@@ -492,10 +492,26 @@ export class CommunityService extends DatabaseService {
       reviewedBy: reviewerId,
       reviewedAt: new Date().toISOString(),
     });
+    // NOTE: Do NOT mutate the user's document or community counters here.
+    // Under production rules, moderators cannot write user docs.
+    // The requester’s client will update their own membership upon approval.
+  }
+}
 
-    if (status === 'approved') {
-      await this.joinCommunity(req.communityId, req.userId);
-    }
+// Helper: allow a user to update their own membership only
+export class MembershipService {
+  async addUserMembershipOnly(communityId: string, userId: string): Promise<void> {
+    const user = await userService.getUser(userId);
+    if (!user) throw new Error('User not found');
+
+    const nextJoined = Array.isArray(user.joinedCommunities)
+      ? [...new Set([...user.joinedCommunities, communityId])]
+      : [communityId];
+
+    await userService.updateUser(userId, {
+      joinedCommunities: nextJoined,
+      updatedAt: new Date().toISOString(),
+    });
   }
 }
 
@@ -802,6 +818,7 @@ export class NotificationService extends DatabaseService {
 // Export service instances
 export const userService = new UserService();
 export const communityService = new CommunityService();
+export const membershipService = new MembershipService();
 export const postService = new PostService();
 export const commentService = new CommentService();
 export const messageService = new MessageService();

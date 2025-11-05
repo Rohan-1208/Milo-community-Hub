@@ -167,6 +167,12 @@ export const [CommunitiesProvider, useCommunities] = createContextHook(() => {
       const isPending = req?.status === 'pending';
       setPendingJoinRequests(prev => ({ ...prev, [communityId]: Boolean(isPending) }));
       if (req?.status === 'approved') {
+        // On approval, let the requester update their own user document membership only
+        try {
+          await membershipService.addUserMembershipOnly(communityId, userId);
+        } catch (e) {
+          console.error('Membership update failed after approval:', e);
+        }
         await loadUserCommunities(userId);
       }
     });
