@@ -21,7 +21,10 @@ import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '../config/firebase';
 import type { User } from '@/types';
 
-WebBrowser.maybeCompleteAuthSession();
+// Only complete AuthSession on native; on web this can interfere with Firebase redirect
+if (Platform.OS !== 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
 
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
@@ -220,6 +223,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   const logout = useCallback(async () => {
     try {
+      console.log('[auth] logout called');
+      // Ensure no auth gating prevents unauth redirects
+      setAuthInProgress(false);
       await signOut(auth);
       // The user state will be updated automatically by the onAuthStateChanged listener
     } catch (error: any) {
