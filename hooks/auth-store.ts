@@ -156,9 +156,26 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('Google sign-in attempt');
       
       if (Platform.OS === 'web') {
-        // Prefer redirect on web to avoid COOP/popup issues
-        await signInWithRedirect(auth, googleProvider);
-        return; // onAuthStateChanged will handle user after redirect
+        // Try popup first; if blocked/closed, fallback to redirect
+        try {
+          const userCred = await signInWithPopup(auth, googleProvider);
+          console.log('Google sign-in successful (web popup):', userCred.user.uid);
+          return userCred.user;
+        } catch (popupErr: any) {
+          const code = popupErr?.code || '';
+          const knownPopupIssues = [
+            'auth/popup-closed-by-user',
+            'auth/popup-blocked',
+            'auth/cancelled-popup-request',
+          ];
+          if (knownPopupIssues.includes(code)) {
+            console.warn('Popup failed, falling back to redirect:', code);
+            await signInWithRedirect(auth, googleProvider);
+            return; // onAuthStateChanged will handle user after redirect
+          }
+          // Unknown popup error: rethrow for visibility
+          throw popupErr;
+        }
       }
 
       if (!googleRequest) {
