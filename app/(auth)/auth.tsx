@@ -19,7 +19,10 @@ export default function AuthScreen() {
   // Navigate to home only after auth state confirms the user is signed in
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.replace('/(tabs)/home');
+      const t = setTimeout(() => {
+        router.replace('/(tabs)/home');
+      }, 150);
+      return () => clearTimeout(t);
     }
   }, [authLoading, isAuthenticated]);
 

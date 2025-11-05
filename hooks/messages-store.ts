@@ -65,6 +65,10 @@ export const [MessagesProvider, useMessages] = createContextHook(() => {
         // Deduplicate by id to avoid React duplicate key warnings
         const deduped = Array.from(new Map(sorted.map(m => [m.id, m])).values());
         setMessagesByConversation(prev => ({ ...prev, [conversationId]: deduped }));
+      },
+      (err) => {
+        console.error('Realtime query error on messages:', err);
+        setError('Not authorized to view this conversation');
       }
     );
     return unsub;
