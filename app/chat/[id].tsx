@@ -51,9 +51,9 @@ function ChatScreenInner() {
   }, [conversationId, loadMessages, subscribeToConversation]);
 
   const handleSend = async () => {
-    if (!user || !conversationId || !text.trim()) return;
-    const rid = receiverId || (conversationId as string);
-    await sendMessage(conversationId as string, user.id, rid, text.trim());
+    // Require a resolved receiverId; do not fallback to conversationId
+    if (!user || !conversationId || !text.trim() || !receiverId) return;
+    await sendMessage(conversationId as string, user.id, receiverId, text.trim());
     setText('');
     // Scroll to end after sending
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
@@ -96,8 +96,7 @@ function ChatScreenInner() {
   };
 
   const pickAndUpload = async (mode: 'image' | 'video') => {
-    if (!user?.id || !conversationId) return;
-    const rid = receiverId || (conversationId as string);
+    if (!user?.id || !conversationId || !receiverId) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: mode === 'image' ? ['images'] : ['videos'],
       quality: 0.8,
@@ -116,7 +115,7 @@ function ChatScreenInner() {
     await sendMessage(
       conversationId as string,
       user.id,
-      rid,
+      receiverId,
       '',
       {
         type: mode === 'image' ? 'image' : 'file',
