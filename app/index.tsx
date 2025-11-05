@@ -3,17 +3,17 @@ import { router } from 'expo-router';
 import { useAuth } from '@/hooks/auth-store';
 
 export default function IndexScreen() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, authInProgress } = useAuth();
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !authInProgress) {
       if (isAuthenticated) {
         router.replace('/(tabs)/home');
       } else {
         router.replace('/(auth)/auth');
       }
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, authInProgress]);
 
   return null;
 }

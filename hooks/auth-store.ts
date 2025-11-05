@@ -26,6 +26,7 @@ WebBrowser.maybeCompleteAuthSession();
 export const [AuthProvider, useAuth] = createContextHook(() => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authInProgress, setAuthInProgress] = useState(false);
 
   // Set up Google auth request for native Expo
   const [googleRequest, , promptGoogle] = Google.useAuthRequest({
@@ -158,25 +159,20 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('Google sign-in attempt');
       
       if (Platform.OS === 'web') {
-        // Try popup first; if blocked/closed, fallback to redirect
+        const method = (process.env.EXPO_PUBLIC_FIREBASE_WEB_AUTH_METHOD || 'popup').toLowerCase();
+        console.log('[auth] web sign-in method:', method);
+        setAuthInProgress(true);
+        if (method === 'redirect') {
+          await signInWithRedirect(auth, googleProvider);
+          return; // page will navigate; onAuthStateChanged will handle user after redirect
+        }
         try {
           const userCred = await signInWithPopup(auth, googleProvider);
           console.log('Google sign-in successful (web popup):', userCred.user.uid);
           return userCred.user;
-        } catch (popupErr: any) {
-          const code = popupErr?.code || '';
-          const knownPopupIssues = [
-            'auth/popup-closed-by-user',
-            'auth/popup-blocked',
-            'auth/cancelled-popup-request',
-          ];
-          if (knownPopupIssues.includes(code)) {
-            console.warn('Popup failed, falling back to redirect:', code);
-            await signInWithRedirect(auth, googleProvider);
-            return; // onAuthStateChanged will handle user after redirect
-          }
-          // Unknown popup error: rethrow for visibility
-          throw popupErr;
+        } finally {
+          // Ensure we clear in-progress for popup flows
+          setAuthInProgress(false);
         }
       }
 
@@ -235,11 +231,12 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   return useMemo(() => ({
     user,
     isLoading,
+    authInProgress,
     login,
     signup,
     signInWithGoogle,
     logout,
     updateProfile,
     isAuthenticated: !!user,
-  }), [user, isLoading, login, signup, signInWithGoogle, logout, updateProfile]);
+  }), [user, isLoading, authInProgress, login, signup, signInWithGoogle, logout, updateProfile]);
 });
