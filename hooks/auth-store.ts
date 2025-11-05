@@ -39,6 +39,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser: FirebaseUser | null) => {
+      console.log('[auth] onAuthStateChanged fired:', !!firebaseUser);
       if (firebaseUser) {
         try {
           // Get user data from Firestore
@@ -91,6 +92,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         await AsyncStorage.removeItem('user');
       }
       setIsLoading(false);
+      console.log('[auth] isLoading set to false; isAuthenticated:', !!firebaseUser);
     });
 
     return () => unsubscribe();
