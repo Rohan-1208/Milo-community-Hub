@@ -16,6 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
+// Ensure account selection prompt to reduce silent failures due to cached sessions
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 const db = getFirestore(app);
 const storage = getStorage(app);
 

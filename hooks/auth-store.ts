@@ -12,6 +12,8 @@ import {
   updateProfile as updateFirebaseProfile,
   signInWithPopup,
   signInWithCredential,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   User as FirebaseUser
 } from 'firebase/auth';
@@ -94,6 +96,19 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     return () => unsubscribe();
   }, []);
 
+  // On web, process redirect results to surface any errors and ensure state settles
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    (async () => {
+      try {
+        await getRedirectResult(auth);
+        // User state will be handled by onAuthStateChanged
+      } catch (err) {
+        console.warn('Google redirect result error:', err);
+      }
+    })();
+  }, []);
+
   const login = useCallback(async (email: string, password: string) => {
     try {
       console.log('Firebase login attempt:', { email });
@@ -141,9 +156,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       console.log('Google sign-in attempt');
       
       if (Platform.OS === 'web') {
-        const result = await signInWithPopup(auth, googleProvider);
-        console.log('Google sign-in successful (web):', result.user.uid);
-        return result.user;
+        // Prefer redirect on web to avoid COOP/popup issues
+        await signInWithRedirect(auth, googleProvider);
+        return; // onAuthStateChanged will handle user after redirect
       }
 
       if (!googleRequest) {
