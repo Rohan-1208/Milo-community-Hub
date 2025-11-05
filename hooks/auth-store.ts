@@ -162,7 +162,9 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         const method = (process.env.EXPO_PUBLIC_FIREBASE_WEB_AUTH_METHOD || 'popup').toLowerCase();
         console.log('[auth] web sign-in method:', method);
         setAuthInProgress(true);
+        let didRedirect = false;
         if (method === 'redirect') {
+          didRedirect = true;
           await signInWithRedirect(auth, googleProvider);
           return; // page will navigate; onAuthStateChanged will handle user after redirect
         }
@@ -170,9 +172,23 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
           const userCred = await signInWithPopup(auth, googleProvider);
           console.log('Google sign-in successful (web popup):', userCred.user.uid);
           return userCred.user;
+        } catch (popupErr: any) {
+          const code = popupErr?.code || '';
+          const knownPopupIssues = [
+            'auth/popup-closed-by-user',
+            'auth/popup-blocked',
+            'auth/cancelled-popup-request',
+          ];
+          if (knownPopupIssues.includes(code)) {
+            console.warn('Popup failed, falling back to redirect:', code);
+            didRedirect = true;
+            await signInWithRedirect(auth, googleProvider);
+            return; // onAuthStateChanged will handle user after redirect
+          }
+          throw popupErr;
         } finally {
-          // Ensure we clear in-progress for popup flows
-          setAuthInProgress(false);
+          // Clear in-progress only if we did not redirect
+          if (!didRedirect) setAuthInProgress(false);
         }
       }
 
